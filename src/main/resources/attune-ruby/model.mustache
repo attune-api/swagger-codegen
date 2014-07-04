@@ -9,15 +9,6 @@ module Attune
       attr_accessor :{{{name}}}
       {{newline}}
       {{/vars}}
-      # :internal => :external
-      def self.attribute_map
-        {
-          {{#vars}}
-          :{{{name}}} => :{{{baseName}}}{{#hasMore}},
-          {{/hasMore}}
-        {{/vars}}{{newline}}
-        }
-      end
 
       def initialize(attributes = {})
         return if attributes.empty?
@@ -48,6 +39,17 @@ module Attune
 
       def to_json(options = {})
         to_body.to_json
+      end
+
+      private
+      # :internal => :external
+      def self.attribute_map
+        {
+          {{#vars}}
+          :{{{name}}} => :{{{baseName}}}{{#hasMore}},
+          {{/hasMore}}
+        {{/vars}}{{newline}}
+        }
       end
     end
   end

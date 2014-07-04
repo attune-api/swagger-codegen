@@ -11,13 +11,21 @@ module Attune
         @client = client
       end
 
-      def escapeString(string)
-        URI.encode(string.to_s)
-      end
-
       {{#operation}}
-      {{#description}}# {{description}}{{/description}}
-      def {{nickname}} ({{#allParams}}{{paramName}}{{#defaultValue}} = {{{defaultValue}}}{{/defaultValue}},{{/allParams}} opts={})
+      {{#notes}}
+      # {{notes}}
+      #
+      {{/notes}}
+      {{#allParams}}
+      # @param [{{dataType}}] {{paramName}}{{newline}}
+      {{/allParams}}
+      {{#returnType}}
+      # @return [Attune::Model::{{returnBaseType}}]{{newline}}
+      {{/returnType}}
+      # @raise [ArgumentError] if user_agent is not provided
+      # @raise [Faraday::Error::ClientError] if the request fails or exceeds the timeout
+      # @raise [AuthenticationException] if authorization header not accepted
+      def {{nickname}} ({{#allParams}}{{paramName}}{{#defaultValue}} = {{{defaultValue}}}{{/defaultValue}}{{#hasMore}},{{/hasMore}}{{/allParams}})
         query_param_keys = [{{#queryParams}}:{{paramName}}{{#hasMore}},{{/hasMore}}{{/queryParams}}]
 
         {{#requiredParamCount}}
@@ -34,7 +42,7 @@ module Attune
           :{{paramName}} => {{paramName}}{{#hasMore}},
           {{/hasMore}}
         {{/allParams}}
-        }.merge(opts)
+        }
 
         #resource path
         path = "{{path}}".sub('{format}','json'){{#pathParams}}.sub('{' + '{{baseName}}' + '}', escapeString({{paramName}}))
@@ -78,8 +86,17 @@ module Attune
 
         {{#returnType}}
         response = @client.request(:{{httpMethod}}, path, {:params=>queryopts,:headers=>headers, :body=>post_body })
-        {{#returnContainer}}
-        response.body.map {|response|{{/returnContainer}} Attune::Model::{{returnBaseType}}.new(JSON.parse(response.body)){{#returnContainer}} }{{/returnContainer}}
+        if response
+          {{#returnContainer}}response.body.map {|response|{{/returnContainer}} Attune::Model::{{returnBaseType}}.new(JSON.parse(response.body)){{#returnContainer}} }{{/returnContainer}}
+        else
+          mockProc = MOCKS['{{classname}}.{{nickname}}']
+          if mockProc
+            mockResponse = mockProc.call({{#allParams}}{{paramName}}{{#hasMore}},{{/hasMore}}{{/allParams}})
+            Attune::Model::{{returnBaseType}}.new(mockResponse)
+          else
+            nil
+          end
+        end
         {{/returnType}}
         {{^returnType}}
         @client.request(:{{httpMethod}}, path, {:params=>queryopts,:headers=>headers, :body=>post_body})
@@ -88,6 +105,11 @@ module Attune
       end
       {{newline}}
       {{/operation}}
+
+      private
+      def escapeString(string)
+        URI.encode(string.to_s)
+      end
     end
   end
 end

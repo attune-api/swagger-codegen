@@ -17,12 +17,12 @@ module Attune
       #
       {{/notes}}
       {{#allParams}}
-      # @param [{{dataType}}] {{paramName}}{{newline}}
+      # @param [{{#complexType}}Attune::Model::{{/complexType}}{{dataType}}] {{paramName}}{{newline}}
       {{/allParams}}
       {{#returnType}}
       # @return [Attune::Model::{{returnBaseType}}]{{newline}}
       {{/returnType}}
-      # @raise [ArgumentError] if user_agent is not provided
+      # @raise [ArgumentError] for invalid inputs
       # @raise [Faraday::Error::ClientError] if the request fails or exceeds the timeout
       # @raise [AuthenticationException] if authorization header not accepted
       def {{nickname}} ({{#allParams}}{{paramName}}{{#defaultValue}} = {{{defaultValue}}}{{/defaultValue}}{{#hasMore}},{{/hasMore}}{{/allParams}})
@@ -32,7 +32,7 @@ module Attune
 
         # verify existence of params
         {{#requiredParams}}
-        raise "{{{paramName}}} is required" if {{{paramName}}}.nil?
+        raise ArgumentError, "{{{paramName}}} is required" if {{{paramName}}}.nil?
         {{/requiredParams}}
         {{/requiredParamCount}}
 
@@ -76,10 +76,10 @@ module Attune
 
           else
             if body.respond_to?("to_body".to_sym)
-    	        post_body = body.to_body
-    	      else
-    	        post_body = body
-    	      end
+              post_body = body.to_body
+            else
+              post_body = body
+            end
           end
         end
         {{/bodyParam}}
@@ -87,7 +87,7 @@ module Attune
         {{#returnType}}
         response = @client.request(:{{httpMethod}}, path, {:params=>queryopts,:headers=>headers, :body=>post_body })
         if response
-          {{#returnContainer}}response.body.map {|response|{{/returnContainer}} Attune::Model::{{returnBaseType}}.new(JSON.parse(response.body)){{#returnContainer}} }{{/returnContainer}}
+          {{#returnContainer}}response.body.map {|response|{{/returnContainer}} Attune::Model::{{returnBaseType}}.new(JSON.parse(response.body)){{#returnContainer}} }{{/returnContainer}}{{newline}}
         else
           mockProc = MOCKS['{{classname}}.{{nickname}}']
           if mockProc

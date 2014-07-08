@@ -3,7 +3,13 @@
 {{#model}}
 module Attune
   module Model
+    {{#description}}
     # {{description}}
+    #
+    {{/description}}
+    {{#vars}}
+    # @attr [{{{datatype}}}] {{name}}
+    {{/vars}}
     class {{classname}}
       {{#vars}}
       attr_accessor :{{{name}}}
@@ -12,29 +18,26 @@ module Attune
 
       def initialize(attributes = {})
         return if attributes.empty?
-        # Morph attribute keys into undescored rubyish style
         {{#vars}}
-        if self.class.attribute_map[:"{{{name}}}"]
-          {{#isContainer}}
-            value = attributes["{{{baseName}}}"] || attributes[:"{{{name}}}"]
-            if value.is_a?(Array)
-              @{{{name}}} = value{{#complexType}}.map{ |v| {{complexType}}.new(v) }{{/complexType}}
-            {{newline}}
-            end
-          {{/isContainer}}{{^isContainer}}
-            # Workaround since JSON.parse has accessors as strings rather than symbols
-            @{{{name}}} = attributes["{{{baseName}}}"] || attributes[:"{{{name}}}"]
-        {{/isContainer}}
+        {{#isContainer}}
+        value = attributes["{{{baseName}}}"] || attributes[:"{{{name}}}"]
+        if value.is_a?(Array)
+          @{{{name}}} = value{{#complexType}}.map{ |v| {{complexType}}.new(v) }{{/complexType}}
+        {{newline}}
         end
+        {{/isContainer}}
+        {{^isContainer}}
+        # Workaround since JSON.parse has accessors as strings rather than symbols
+        @{{{name}}} = attributes["{{{baseName}}}"] || attributes[:"{{{name}}}"]
+        {{/isContainer}}
         {{/vars}}{{newline}}
       end
 
       def to_body
-        body = {}
-        self.class.attribute_map.each_pair do |key, value|
-          body[value] = self.send(key) unless self.send(key).nil?
-        end
-        body
+        Hash[ATTRIBUTE_MAP.map do |internal, external|
+          next unless value = send(internal)
+          [external, value]
+        end.compact]
       end
 
       def to_json(options = {})
@@ -43,14 +46,12 @@ module Attune
 
       private
       # :internal => :external
-      def self.attribute_map
-        {
+      ATTRIBUTE_MAP = {
           {{#vars}}
           :{{{name}}} => :{{{baseName}}}{{#hasMore}},
           {{/hasMore}}
         {{/vars}}{{newline}}
         }
-      end
     end
   end
 end

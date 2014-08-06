@@ -44,4 +44,11 @@ object AttuneJavaGenerator extends BasicJavaGenerator {
   // package for api classes
   override def apiPackage = Some("attune.ranking.client.api")
 
+    override def supportingFiles =
+    List(
+      ("apiInvoker.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiInvoker.java"),
+      ("JsonUtil.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "JsonUtil.java"),
+      ("apiException.mustache", destinationDir + java.io.File.separator + invokerPackage.get.replace(".", java.io.File.separator) + java.io.File.separator, "ApiException.java"),
+      ("build.mustache", "generated-code/java", "build.gradle"))
+
 }

@@ -94,7 +94,6 @@ object AttuneRubyGenerator extends BasicRubyGenerator {
     ("attune" + File.separator + "gzip.mustache", destinationDir, "attune" + File.separator + "gzip.rb"),
     ("attune" + File.separator + "json_logger.mustache", destinationDir, "attune" + File.separator + "json_logger.rb"),
     ("attune" + File.separator + "net_http_persistent.mustache", destinationDir, "attune" + File.separator + "net_http_persistent.rb"),
-    ("attune" + File.separator + "param_flattener.mustache", destinationDir, "attune" + File.separator + "param_flattener.rb"),
-    ("attune" + File.separator + "version.mustache", destinationDir, "attune" + File.separator + "version.rb"))
+    ("attune" + File.separator + "param_flattener.mustache", destinationDir, "attune" + File.separator + "param_flattener.rb"))
 
 }
